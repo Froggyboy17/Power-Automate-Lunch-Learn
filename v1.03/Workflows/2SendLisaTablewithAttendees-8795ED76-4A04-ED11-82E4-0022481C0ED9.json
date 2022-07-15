@@ -1,0 +1,321 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "Central Standard Time",
+            "startTime": "2022-07-13T12:00:00Z",
+            "schedule": {
+              "hours": [
+                "8"
+              ],
+              "minutes": [
+                0
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "4e7c903c-9137-4f12-9878-aa745b72e6b5"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Initialize_Variable_YesterdaysDate": {
+          "runAfter": {
+            "Compose": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "817b0a4e-2f05-403a-9339-5c0ceb9a6cdd"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "YesterdaysDate",
+                "type": "string",
+                "value": "@{formatDateTime(addDays(utcNow(),-1),'M/d/yyyy')}"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_CompanyNameWithSpaces": {
+          "runAfter": {
+            "Initialize_Variable_YesterdaysDate": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "725769a4-6aa9-4a38-b9cf-3a9b9a7683c8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "CompanyNameWithSpaces",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_CompanyNameNoSpaces": {
+          "runAfter": {
+            "Initialize_Variable_CompanyNameWithSpaces": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d1bc6d0e-0b06-4027-a643-182115f45451"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "CompanyNameNoSpaces",
+                "type": "string",
+                "value": "@{replace(variables('CompanyNameWithSpaces'),' ','')}"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_PDFFileNameFormat": {
+          "runAfter": {
+            "Initialize_Variable_CompanyNameNoSpaces": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9c6b85d3-aef3-4687-b608-12036c5d4d54"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "PDFFileNameFormat",
+                "type": "string",
+                "value": "__@{variables('CompanyNameNoSpaces')}_CEU_Certificate"
+              }
+            ]
+          }
+        },
+        "Get_worksheets": {
+          "runAfter": {
+            "Initialize_Variable_PDFFileNameFormat": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G": "/Spreadsheet.xlsx",
+            "operationMetadataId": "79e4cc58-8ffe-4138-9566-eda36bda539b",
+            "tableId": null
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetAllWorksheets",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!LHJwDN6Xr0K-kL9ngQog8dPvR_ctu5pCpxms_P8KnD47db6JbZqDS4Wo2oYvOvKC",
+              "file": "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Get_tables": {
+          "runAfter": {
+            "Get_worksheets": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G": "/Spreadsheet.xlsx",
+            "operationMetadataId": "e328ee18-4520-4ba3-9038-93a7ba732f6c",
+            "tableId": null
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetTables",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!LHJwDN6Xr0K-kL9ngQog8dPvR_ctu5pCpxms_P8KnD47db6JbZqDS4Wo2oYvOvKC",
+              "file": "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Compose": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "a41647ea-31e5-4ffe-a882-f6266ca8de07"
+          },
+          "type": "Compose",
+          "inputs": "@workflow()"
+        },
+        "Condition": {
+          "actions": {
+            "Send_an_email_(V2)_2": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "476ccc51-293a-48a5-a32b-71bf8964afcb"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2",
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365"
+                },
+                "parameters": {
+                  "emailMessage/To": "jarredvh@gmail.com",
+                  "emailMessage/Subject": "Lunch & Learn Presentation Certificate Request",
+                  "emailMessage/Body": "<p>Hi Lisa,<br>\n<br>\n@{body('Create_HTML_table')}<br>\n<br>\nYesterday, @{variables('YesterdaysDate')}, we did another lunch &amp; learn presentation, the list above has the names, AIA numbers, Company and which presentation was attended for each of our attendees. Would you mind getting me CEU Certificates for each person who attended?<br>\n<br>\nThank you as always,<br>\n<strong>Jarred VanHorn</strong><br>\n<em>Project Engineer</em><br>\n+1(651) 336-9342<br>\nJarred@luhabuild.com<br>\n<span style=\"font-size: 18px\"><strong>LUHA Build</strong></span></p>",
+                  "emailMessage/From": "jarred@luhabuild.com",
+                  "emailMessage/Importance": "High"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            }
+          },
+          "runAfter": {
+            "Counts_Rows_Added_Yesterday": [
+              "Succeeded"
+            ]
+          },
+          "expression": {
+            "greaterOrEquals": [
+              "@outputs('Counts_Rows_Added_Yesterday')",
+              1
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "e1db637c-f5aa-4bcb-9c10-f695b77c7cd6"
+          },
+          "type": "If"
+        },
+        "List_Rows_Added_Yesterday": {
+          "runAfter": {
+            "Get_tables": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G": "/Spreadsheet.xlsx",
+            "operationMetadataId": "6902c0ce-9b15-4766-aca0-0671830e9aff",
+            "tableId": "{47A50529-1667-4AF2-8A15-455179A74CE6}"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetItems",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!LHJwDN6Xr0K-kL9ngQog8dPvR_ctu5pCpxms_P8KnD47db6JbZqDS4Wo2oYvOvKC",
+              "file": "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G",
+              "table": "{47A50529-1667-4AF2-8A15-455179A74CE6}",
+              "$filter": "Date eq '@{formatDateTime(variables('YesterdaysDate'),'M/d/yyyy')}'",
+              "dateTimeFormat": "@formatDateTime(variables('YesterdaysDate'),'M/d/yyyy')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Counts_Rows_Added_Yesterday": {
+          "runAfter": {
+            "Create_HTML_table": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "1c5c08b1-47da-4693-92ab-d8f1ed54aa00"
+          },
+          "type": "Compose",
+          "inputs": "@length(outputs('List_Rows_Added_Yesterday')?['body/value'])"
+        },
+        "Create_HTML_table": {
+          "runAfter": {
+            "List_Rows_Added_Yesterday": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9cfb4145-cf7c-4c7d-959b-f412b7ea0f14"
+          },
+          "type": "Table",
+          "inputs": {
+            "from": "@outputs('List_Rows_Added_Yesterday')?['body/value']",
+            "format": "HTML",
+            "columns": [
+              {
+                "header": "FirstName",
+                "value": "@item()?['First Name']"
+              },
+              {
+                "header": "LastName",
+                "value": "@item()?['Last Name']"
+              },
+              {
+                "header": "AIA#",
+                "value": "@item()?['AIA _x0023_']"
+              },
+              {
+                "header": "Company",
+                "value": "@item()?['Company']"
+              },
+              {
+                "header": "Presentation",
+                "value": "@item()?['Presentation']"
+              },
+              {
+                "header": "PDFName",
+                "value": "@item()?['PDF File Name']"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,490 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "Recurrence": {
+          "recurrence": {
+            "frequency": "Day",
+            "interval": 1,
+            "timeZone": "Central Standard Time",
+            "schedule": {
+              "hours": [
+                "16"
+              ],
+              "minutes": [
+                30
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "4e7c903c-9137-4f12-9878-aa745b72e6b5"
+          },
+          "type": "Recurrence"
+        }
+      },
+      "actions": {
+        "Initialize_Variable_YesterdaysDate": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "817b0a4e-2f05-403a-9339-5c0ceb9a6cdd"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "YesterdaysDate",
+                "type": "string",
+                "value": "@{formatDateTime(addDays(utcNow(),-1),'M/d/yyyy')}"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_CompanyNameWithSpaces": {
+          "runAfter": {
+            "Initialize_Variable_LastName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "725769a4-6aa9-4a38-b9cf-3a9b9a7683c8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "CompanyNameWithSpaces",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_CompanyNameNoSpaces": {
+          "runAfter": {
+            "Initialize_Variable_CompanyNameWithSpaces": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d1bc6d0e-0b06-4027-a643-182115f45451"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "CompanyNameNoSpaces",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Get_worksheets": {
+          "runAfter": {
+            "Initialize_Variable_FilePath": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G": "/Spreadsheet.xlsx",
+            "operationMetadataId": "79e4cc58-8ffe-4138-9566-eda36bda539b",
+            "tableId": null
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetAllWorksheets"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!LHJwDN6Xr0K-kL9ngQog8dPvR_ctu5pCpxms_P8KnD47db6JbZqDS4Wo2oYvOvKC",
+              "file": "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Get_tables": {
+          "runAfter": {
+            "Get_worksheets": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G": "/Spreadsheet.xlsx",
+            "operationMetadataId": "e328ee18-4520-4ba3-9038-93a7ba732f6c",
+            "tableId": null
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetTables"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!LHJwDN6Xr0K-kL9ngQog8dPvR_ctu5pCpxms_P8KnD47db6JbZqDS4Wo2oYvOvKC",
+              "file": "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "List_rows_present_in_a_table": {
+          "runAfter": {
+            "Get_tables": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G": "/Spreadsheet.xlsx",
+            "operationMetadataId": "6902c0ce-9b15-4766-aca0-0671830e9aff",
+            "tableId": "{47A50529-1667-4AF2-8A15-455179A74CE6}"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetItems"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!LHJwDN6Xr0K-kL9ngQog8dPvR_ctu5pCpxms_P8KnD47db6JbZqDS4Wo2oYvOvKC",
+              "file": "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G",
+              "table": "{47A50529-1667-4AF2-8A15-455179A74CE6}",
+              "$filter": "Date eq '@{formatDateTime(variables('YesterdaysDate'),'M/d/yyyy')}'",
+              "dateTimeFormat": "@formatDateTime(variables('YesterdaysDate'),'M/d/yyyy')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Apply_to_each_4": {
+          "foreach": "@outputs('List_rows_present_in_a_table')?['body/value']",
+          "actions": {
+            "Set_Variable_FirstName": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "ceafd908-a5cf-4fe7-8b64-9e287bc91353"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "FirstName",
+                "value": "@items('Apply_to_each_4')?['First Name']"
+              }
+            },
+            "Set_Variable_CompanyWithSpaces": {
+              "runAfter": {
+                "Set_Variable_LastName": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "0347e7c8-bd55-42be-a4aa-3ac793e64be2"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "CompanyNameWithSpaces",
+                "value": "@items('Apply_to_each_4')?['Company']"
+              }
+            },
+            "Set_Variable_LastName": {
+              "runAfter": {
+                "Set_Variable_FirstName": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "2b675a9d-e1aa-43f7-a931-fd90e39f7174"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "LastName",
+                "value": "@items('Apply_to_each_4')?['Last Name']"
+              }
+            },
+            "Set_Variable_CompanyNameNoSpaces": {
+              "runAfter": {
+                "Set_Variable_CompanyWithSpaces": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "9cc153bc-8883-42a6-b96b-93a34f294db7"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "CompanyNameNoSpaces",
+                "value": "@{replace(variables('CompanyNameWithSpaces'),' ','')}"
+              }
+            },
+            "List_folder_2": {
+              "runAfter": {
+                "Set_Variable_FilePath": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "%252fShared%2bDocuments%252fGeneral%252fLunch%2b%2526%2bLearn%2bCertificates": "/Shared Documents/General/Lunch & Learn Certificates",
+                "operationMetadataId": "497a21a9-7d3f-4f27-92f2-6930b88888ab"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "ListFolder"
+                },
+                "parameters": {
+                  "dataset": "https://netorgft9009544.sharepoint.com/sites/LunchandLearn",
+                  "id": "%252fShared%2bDocuments%252fGeneral%252fLunch%2b%2526%2bLearn%2bCertificates"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Set_Variable_PresentationName": {
+              "runAfter": {
+                "Set_Variable_Email": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "5ff56c1a-c45c-4553-970b-0d8701f62279"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "PresentationName",
+                "value": "@items('Apply_to_each_4')?['Presentation']"
+              }
+            },
+            "Set_Variable_FilePath": {
+              "runAfter": {
+                "Set_Variable_PresentationName": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "896064bd-88ab-46f8-b1ae-7abc842507c6"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "FilePath",
+                "value": "/Shared Documents/General/Lunch & Learn Certificates/@{variables('FirstName')}_@{variables('LastName')}_@{variables('CompanyNameNoSpaces')}_CEU_Certificate.pdf"
+              }
+            },
+            "Get_file_content_using_path": {
+              "runAfter": {
+                "List_folder_2": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "e4d27b8f-ae0b-454f-ba02-ff6f5e5f4031"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "GetFileContentByPath"
+                },
+                "parameters": {
+                  "dataset": "https://netorgft9009544.sharepoint.com/sites/LunchandLearn",
+                  "path": "@variables('FilePath')",
+                  "inferContentType": true
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Send_an_email_(V2)_2": {
+              "runAfter": {
+                "Get_file_content_using_path": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "87e4922e-25ee-48da-ae27-e2b31b15ddb8"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+                  "connectionName": "shared_office365",
+                  "operationId": "SendEmailV2"
+                },
+                "parameters": {
+                  "emailMessage/To": "@variables('Email')",
+                  "emailMessage/Subject": "@{variables('PresentationName')} CEU Certificate of Completion",
+                  "emailMessage/Body": "<p>Hi @{variables('FirstName')},<br>\n<br>\nThank you for attending the LUHA Build/Agrob Buchtal @{variables('PresentationName')} CEU lunch and learn presentation! Please find attached your CEU certificate of completion, earning you 1 LU/HSW credit.<br>\n<br>\n<u>Below are some useful links for Agrob Buchtal products discussed in the presentation:</u><br>\n<strong>Ceramic Façade Systems: </strong>https://1drv.ms/b/s!Amf0CE0jXkcqg68_viVgJGWY8V8RtA?e=x3CLdy<br>\n<strong>Hytect Brochure (Photocatalyic Coating): </strong>https://1drv.ms/b/s!Amf0CE0jXkcqg5UQVHb1wNFYkHAdag?e=RcsWKL<br>\n<strong>Other Architectural Brochures:</strong><br>\nhttps://agrob-buchtal.de/en/architect-planner/service/brochures<br>\n<br>\nWe will be happy to assist you with any of your project needs. Please do not hesitate to reach out to ilja@luhabuild.com for any project inquiries.<br>\n<br>\n<strong>Jarred VanHorn</strong><br>\nProject Engineer<br>\n+1(651) 336-9342<br>\nJarred@luhabuild.com<br>\n<span style=\"font-size: 18px\"><strong>LUHA Build</strong></span></p>",
+                  "emailMessage/From": "jarred@luhabuild.com",
+                  "emailMessage/Attachments": [
+                    {
+                      "Name": "@{variables('FirstName')}_@{variables('LastName')}_@{variables('CompanyNameNoSpaces')}_CEU_Certificate.pdf",
+                      "ContentBytes": "@body('Get_file_content_using_path')"
+                    }
+                  ],
+                  "emailMessage/Importance": "High"
+                },
+                "authentication": "@parameters('$authentication')"
+              }
+            },
+            "Set_Variable_Email": {
+              "runAfter": {
+                "Set_Variable_CompanyNameNoSpaces": [
+                  "Succeeded"
+                ]
+              },
+              "metadata": {
+                "operationMetadataId": "a0aca8d5-17b1-4b4e-b306-2348f75151fb"
+              },
+              "type": "SetVariable",
+              "inputs": {
+                "name": "Email",
+                "value": "@items('Apply_to_each_4')?['Email']"
+              }
+            }
+          },
+          "runAfter": {
+            "List_rows_present_in_a_table": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "3b3f16b2-12f8-4c0e-8bb4-78df5c810980"
+          },
+          "type": "Foreach"
+        },
+        "Initialize_Variable_FirstName": {
+          "runAfter": {
+            "Initialize_Variable_YesterdaysDate": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6e19360d-106e-410f-826b-4555c5ea4437"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FirstName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_LastName": {
+          "runAfter": {
+            "Initialize_Variable_FirstName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "5eb0efba-850f-467c-9e1d-41cb47b7adbd"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "LastName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_PresentationName": {
+          "runAfter": {
+            "Initialize_Variable_Email": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "c5d929cc-b16d-48b4-b66d-9e5b89a886df"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "PresentationName",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_FilePath": {
+          "runAfter": {
+            "Initialize_Variable_PresentationName": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6d4fd9de-0429-4229-939c-e712e7328f28"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "FilePath",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_Email": {
+          "runAfter": {
+            "Initialize_Variable_CompanyNameNoSpaces": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7798572b-2c07-4b4d-86b1-9d59431beb23"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "Email",
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}

@@ -1,0 +1,282 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_excelonlinebusiness": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_excelonlinebusiness"
+        }
+      },
+      "shared_microsoftforms": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_microsoftforms"
+        }
+      },
+      "shared_hubspotcrm": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_hubspotcrm"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_a_New_Response_is_Submitted": {
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "operationMetadataId": "b0d5d2c0-0cec-45de-9669-727afe921ada"
+          },
+          "type": "OpenApiConnectionWebhook",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+              "connectionName": "shared_microsoftforms",
+              "operationId": "CreateFormWebhook"
+            },
+            "parameters": {
+              "form_id": "c0EKB4uCHEqTKIg-xbQlHbgYfsjDF05Hs24zoUKAArVUNVZWREQzRTk5WVg5OUJBWFhOMzlORkxKTC4u"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Get_'Master_Spreadsheet'": {
+          "runAfter": {
+            "Initialize_Variable_PDFFileNameFormat": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQ5OHRDFTKAAALMCWRB3GJJBYMSQM3WC": "/Spreadsheet with Template.xlsx",
+            "operationMetadataId": "3e212c71-3cfa-4f9a-a211-ad6dcb88952a",
+            "tableId": null,
+            "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G": "/Spreadsheet.xlsx"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetAllWorksheets"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!LHJwDN6Xr0K-kL9ngQog8dPvR_ctu5pCpxms_P8KnD47db6JbZqDS4Wo2oYvOvKC",
+              "file": "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Get_Form_Response_Details": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "acb10ac0-81f6-4d88-a929-9e7919fb935e"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_microsoftforms",
+              "connectionName": "shared_microsoftforms",
+              "operationId": "GetFormResponseById"
+            },
+            "parameters": {
+              "form_id": "c0EKB4uCHEqTKIg-xbQlHbgYfsjDF05Hs24zoUKAArVUNVZWREQzRTk5WVg5OUJBWFhOMzlORkxKTC4u",
+              "response_id": "@triggerOutputs()?['body/resourceData/responseId']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Adds_Form_Response_as_Row_in_'Master_Spreadsheet'": {
+          "runAfter": {
+            "List_rows_present_in_a_table": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQ5OHRDFTKAAALMCWRB3GJJBYMSQM3WC": "/Spreadsheet with Template.xlsx",
+            "operationMetadataId": "1bd0f3b8-19cd-4146-b7aa-1654bdff6912",
+            "tableId": "{47A50529-1667-4AF2-8A15-455179A74CE6}",
+            "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G": "/Spreadsheet.xlsx"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "AddRowV2"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!LHJwDN6Xr0K-kL9ngQog8dPvR_ctu5pCpxms_P8KnD47db6JbZqDS4Wo2oYvOvKC",
+              "file": "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G",
+              "table": "{47A50529-1667-4AF2-8A15-455179A74CE6}",
+              "item/First Name": "@outputs('Get_Form_Response_Details')?['body/r038f1c79639543b8a9d5c272052740b0']",
+              "item/Last Name": "@outputs('Get_Form_Response_Details')?['body/r578bd5e5682a4df9b4642b169a0777d8']",
+              "item/Email": "@outputs('Get_Form_Response_Details')?['body/r5ecbeb5799fd4159963ce9fc37acee8f']",
+              "item/Company": "@outputs('Get_Form_Response_Details')?['body/rd45779debe5d48159d3ec78f885c0db2']",
+              "item/Job Title": "@outputs('Get_Form_Response_Details')?['body/r7c7e08c6a40a40f791fb4b6549ec0b26']",
+              "item/AIA _x0023_": "@outputs('Get_Form_Response_Details')?['body/r1e493e3a59c940a194a237fd8c19153f']",
+              "item/PDF File Name": "@{outputs('Get_Form_Response_Details')?['body/r038f1c79639543b8a9d5c272052740b0']}_@{outputs('Get_Form_Response_Details')?['body/r578bd5e5682a4df9b4642b169a0777d8']}_@{variables('CompanyNameNoSpaces')}_CEU_Certificate",
+              "item/Date": "@outputs('Get_Form_Response_Details')?['body/r77fb3bb06235454baa83950cf4f8925b']",
+              "item/Presentation": "@outputs('Get_Form_Response_Details')?['body/rf60cf0f788f248fd836d905744c6cd9e']",
+              "item/CEU Credit": "Y"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Create__Contact_in_Hubspot_CRM_Database": {
+          "runAfter": {
+            "List_rows_present_in_a_table": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "474f349b-61ea-4842-a331-785f821fd9c0"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_hubspotcrm",
+              "connectionName": "shared_hubspotcrm",
+              "operationId": "ContactsCreate"
+            },
+            "parameters": {
+              "body/properties/company": "@outputs('Get_Form_Response_Details')?['body/rd45779debe5d48159d3ec78f885c0db2']",
+              "body/properties/email": "@outputs('Get_Form_Response_Details')?['body/r5ecbeb5799fd4159963ce9fc37acee8f']",
+              "body/properties/firstname": "@outputs('Get_Form_Response_Details')?['body/r038f1c79639543b8a9d5c272052740b0']",
+              "body/properties/jobtitle": "@outputs('Get_Form_Response_Details')?['body/r7c7e08c6a40a40f791fb4b6549ec0b26']",
+              "body/properties/lastname": "@outputs('Get_Form_Response_Details')?['body/r578bd5e5682a4df9b4642b169a0777d8']"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "List_rows_present_in_a_table": {
+          "runAfter": {
+            "Get_'Master_Spreadsheet'": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G": "/Spreadsheet.xlsx",
+            "operationMetadataId": "09ed8bfa-f5ed-4128-9c11-085338f18e8e",
+            "tableId": "{47A50529-1667-4AF2-8A15-455179A74CE6}"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_excelonlinebusiness",
+              "connectionName": "shared_excelonlinebusiness",
+              "operationId": "GetItems"
+            },
+            "parameters": {
+              "source": "me",
+              "drive": "b!LHJwDN6Xr0K-kL9ngQog8dPvR_ctu5pCpxms_P8KnD47db6JbZqDS4Wo2oYvOvKC",
+              "file": "01OQ5OHRACOFK5A46VORALBE7QYLO4ZF6G",
+              "table": "{47A50529-1667-4AF2-8A15-455179A74CE6}",
+              "dateTimeFormat": "@formatDateTime(variables('YesterdaysDate'),'M/d/yyyy')"
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Initialize_Variable_YesterdaysDate": {
+          "runAfter": {
+            "Get_Form_Response_Details": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "817b0a4e-2f05-403a-9339-5c0ceb9a6cdd"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "YesterdaysDate",
+                "type": "string",
+                "value": "@{formatDateTime(addDays(utcNow(),-1),'yyyy-MM-dd')}"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_CompanyNameWithSpaces": {
+          "runAfter": {
+            "Initialize_Variable_YesterdaysDate": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "725769a4-6aa9-4a38-b9cf-3a9b9a7683c8"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "CompanyNameWithSpaces",
+                "type": "string",
+                "value": "@outputs('Get_Form_Response_Details')?['body/rd45779debe5d48159d3ec78f885c0db2']"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_CompanyNameNoSpaces": {
+          "runAfter": {
+            "Initialize_Variable_CompanyNameWithSpaces": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d1bc6d0e-0b06-4027-a643-182115f45451"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "CompanyNameNoSpaces",
+                "type": "string",
+                "value": "@{replace(variables('CompanyNameWithSpaces'),' ','')}"
+              }
+            ]
+          }
+        },
+        "Initialize_Variable_PDFFileNameFormat": {
+          "runAfter": {
+            "Initialize_Variable_CompanyNameNoSpaces": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "9c6b85d3-aef3-4687-b608-12036c5d4d54"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "PDFFileNameFormat",
+                "type": "string",
+                "value": "@{outputs('Get_Form_Response_Details')?['body/r038f1c79639543b8a9d5c272052740b0']}_@{outputs('Get_Form_Response_Details')?['body/r578bd5e5682a4df9b4642b169a0777d8']}_@{variables('CompanyNameNoSpaces')}_CEU_Certificate"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}

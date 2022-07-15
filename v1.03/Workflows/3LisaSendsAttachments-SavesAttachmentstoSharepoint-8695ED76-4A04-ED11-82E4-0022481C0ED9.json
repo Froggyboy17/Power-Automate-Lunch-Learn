@@ -1,0 +1,100 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_sharepointonline": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_sharepointonline"
+        }
+      },
+      "shared_office365": {
+        "runtimeSource": "embedded",
+        "connection": {},
+        "api": {
+          "name": "shared_office365"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "When_a_new_email_arrives_(V3)": {
+          "splitOn": "@triggerOutputs()?['body/value']",
+          "metadata": {
+            "Id::AQMkAGY5ODI0MGE5LTljZWQtNDU1ADktYThhYy1kNDMxOTFmMjQ3ZjUALgAAAy394w3c5nNNvKj9uIa5JyIBAKAnGWXChaxAlXcFjGPg5WQAAAIBDAAAAA==": "Inbox",
+            "operationMetadataId": "b425b98f-2779-4519-9f7f-5e83dbb88829"
+          },
+          "type": "OpenApiConnectionNotification",
+          "inputs": {
+            "host": {
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_office365",
+              "connectionName": "shared_office365",
+              "operationId": "OnNewEmailV3"
+            },
+            "parameters": {
+              "folderPath": "Id::AQMkAGY5ODI0MGE5LTljZWQtNDU1ADktYThhYy1kNDMxOTFmMjQ3ZjUALgAAAy394w3c5nNNvKj9uIa5JyIBAKAnGWXChaxAlXcFjGPg5WQAAAIBDAAAAA==",
+              "from": "lisa.burling@agrob-buchtal.com",
+              "includeAttachments": true,
+              "subjectFilter": "Certificate",
+              "importance": "Any",
+              "fetchOnlyWithAttachment": true
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        }
+      },
+      "actions": {
+        "Apply_to_each": {
+          "foreach": "@triggerOutputs()?['body/attachments']",
+          "actions": {
+            "Create_file": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "3f7d6523-2d3a-4ffe-b55f-d8d762d9dd4e"
+              },
+              "type": "OpenApiConnection",
+              "inputs": {
+                "host": {
+                  "apiId": "/providers/Microsoft.PowerApps/apis/shared_sharepointonline",
+                  "connectionName": "shared_sharepointonline",
+                  "operationId": "CreateFile"
+                },
+                "parameters": {
+                  "dataset": "https://netorgft9009544.sharepoint.com/sites/LunchandLearn",
+                  "folderPath": "/Shared Documents/General/Lunch & Learn Certificates",
+                  "name": "@items('Apply_to_each')?['name']",
+                  "body": "@items('Apply_to_each')?['contentBytes']"
+                },
+                "authentication": "@parameters('$authentication')"
+              },
+              "runtimeConfiguration": {
+                "contentTransfer": {
+                  "transferMode": "Chunked"
+                }
+              }
+            }
+          },
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "46ca3348-2062-43fb-ae3f-389dff335ff2"
+          },
+          "type": "Foreach"
+        }
+      },
+      "outputs": {}
+    }
+  },
+  "schemaVersion": "1.0.0.0"
+}
